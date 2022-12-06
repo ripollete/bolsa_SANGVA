@@ -4,6 +4,8 @@ De momento únicamente hay que cargar la función -> obtenerListadoBolsaSANGVA y
 
 obtenerListadoBolsaSANGVA(turno,categoria,departamento)
 
+Obteniendo un fichero llamado bolsa.csv con el resultado.
+
 En departamento se permite la palabra all, para mostrar todos los departamentos.
 Las variables de entrada admiten las siguientes opciones:
 en el fichero Bolsa_SANGVA.R, cuando termina la función hay un ejemplo para ejecutar :
