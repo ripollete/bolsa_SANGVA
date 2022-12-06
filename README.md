@@ -6,6 +6,9 @@ obtenerListadoBolsaSANGVA(turno,categoria,departamento)
 
 En departamento se permite la palabra all, para mostrar todos los departamentos.
 Las variables de entrada admiten las siguientes opciones:
+en el fichero Bolsa_SANGVA.R, cuando termina la función hay un ejemplo para ejecutar :
+
+obtenerListadoBolsaSANGVA("ORDINARIO","ANALISTA PROGRAMADOR Y DE SISTEMAS","PESET")
 
 ## turno:
 ORDINARIO
