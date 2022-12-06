@@ -1,3 +1,8 @@
+#Versió 1.0.2
+#Data 06/12/2022
+#Hora 18:00
+#Observacions Solo saca las 5.000 primeras personas debido a que el servidor se satura.
+
 #################
 #Creo la función#
 #################
@@ -20,9 +25,10 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
   #PREPARO LAS VARIABLES#
   #######################
   urlBuscarEdicion<-"https://www2.san.gva.es/bolsa/bolsadetrabajoiiss.jsp?language=val&nw=true"
-  url<-"http://www2.san.gva.es/bolsa/lstCandidatosListaOperativa.jsp?codedicion=#codedicion&turnoCod=#turnoCod&categoriaCod=#categoriaCod&departamentoCod=#departamentoCod&turnoDesc=Ordinario&categoriaDesc=#categoriaDesc&departamentoDesc=#departamentoDesc&posicionFinal=15000&posicionInicial=1&nw=true"
-  urlsituacion<-"http://www2.san.gva.es/bolsa/lstSituacionCandidatos.jsp?turnoCod=#turnoCod&categoriaCod=#categoriaCod&departamentoCod=#departamentoCod&turnoDesc=Ordinario&categoriaDesc=#categoriaDesc&departamentoDesc=#departamentoDesc&posicionFinal=15000&posicionInicial=1&nw=true"
-  ################
+  url<-"http://www2.san.gva.es/bolsa/lstCandidatosListaOperativa.jsp?codedicion=#codedicion&turnoCod=#turnoCod&categoriaCod=#categoriaCod&departamentoCod=#departamentoCod&turnoDesc=#turnoDesc&categoriaDesc=#categoriaDesc&departamentoDesc=#departamentoDesc&posicionFinal=3000&posicionInicial=1&nw=true"
+  urlsituacion<-"http://www2.san.gva.es/bolsa/lstSituacionCandidatos.jsp?turnoCod=#turnoCod&categoriaCod=#categoriaCod&departamentoCod=#departamentoCod&turnoDesc=#turnoDesc&categoriaDesc=#categoriaDesc&departamentoDesc=#departamentoDesc&posicionFinal=3000&posicionInicial=1&nw=true"
+  #urlsituacion<-"https://www2.san.gva.es/bolsa/lstSituacionCandidatos.jsp?turnoCod=#turnoCod&categoriaCod=#categoriaCod&departamentoCod=#departamentoCod&turnoDesc=Ordinari&categoriaDesc=AUXILIAR+ADMINISTRATIU&departamentoDesc=LA+FE&posicionInicial=1&posicionFinal=50&nw=true"
+   ################
   #BUSCAR EDICION#
   ################
   
@@ -34,7 +40,8 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
   
   turnos <- data.frame(
     "turnoCod" = c("O","P"),
-    "turnoDesc" = c("ORDINARIO","PROMOCIÓN INTERNA")
+    "turnoDesc" = c("ORDINARIO","PROMOCIÓN INTERNA"),
+    "turnoDescv" = c("ORDINARI","PROMOCIÓ INTERNA TEMPORAL")
   )
   
   categorias <- data.frame(
@@ -310,7 +317,6 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
   
   Personas <-data.frame("","","","","","","","")
   colnames(Personas)<-c("Puesto","Nombre","Puntos","departamentoDesc","categoriaDesc","Situacion","Categoria","Departamento")
-  
   for (i in 1:length(categorias[,1]))
   {
     for (j in 1:length(departamentos[,1]))
@@ -324,6 +330,7 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
       urlbucle <- gsub("#categoriaDesc",gsub(" ","%",categorias$categoriaDesc[i]),urlbucle)
       urlbucle <- gsub("#turnoCod",gsub(" ","%",turnos[1]),urlbucle)
       urlbucle <- gsub("#codedicion",gsub(" ","%",edicion),urlbucle)
+      urlbucle <- gsub("#turnoDesc",gsub(" ","%",turnos[2]),urlbucle)
       html_puntuacion <-read_html(urlbucle)
       nodos_table_puntuacion<-html_puntuacion %>% html_nodes('table')
       
@@ -335,6 +342,7 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
       urlbucleSituacion <- gsub("#categoriaCod",gsub(" ","%",categorias$categoriaCod[i]),urlbucleSituacion)
       urlbucleSituacion <- gsub("#categoriaDesc",gsub(" ","%",categorias$categoriaDesc[i]),urlbucleSituacion)
       urlbucleSituacion <- gsub("#turnoCod",gsub(" ","%",turnos[1]),urlbucleSituacion)
+      urlbucleSituacion <- gsub("#turnoDesc",gsub(" ","%",turnos[2]),urlbucleSituacion)
       html_situacion <-read_html(urlbucleSituacion)
       nodos_table_situacion<-html_situacion %>% html_nodes('table')
       
@@ -352,6 +360,7 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
           b<-b[2:length(b[,1]),]
           colnames(b)<-c("Puesto","Nombre","Situacion","Categoria","Departamento")
           
+          
           #Magia
           c<-merge(x=a,y=b, by ="Nombre", all.x = TRUE)
           d <-c[,c(2,1,3,4,5,7,8,9)]
@@ -365,4 +374,7 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
 }
 
 #Ejemplo de uso
-obtenerListadoBolsaSANGVA("ORDINARIO","ANALISTA PROGRAMADOR Y DE SISTEMAS","PESET")
+obtenerListadoBolsaSANGVA("ORDINARIO","ENGINYER D'APLICACIONS I SISTEMES","RIBERA")
+
+#Ejemplo de uso 2
+obtenerListadoBolsaSANGVA("ORDINARIO","ENGINYER D'APLICACIONS I SISTEMES","all")
