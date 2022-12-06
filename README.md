@@ -7,11 +7,11 @@ obtenerListadoBolsaSANGVA(turno,categoria,departamento)
 En departamento se permite la palabra all, para mostrar todos los departamentos.
 Las variables de entrada admiten las siguientes opciones:
 
-##turno:
+## turno:
 ORDINARIO
 PROMOCIÓN INTERNA
 
-##categoria
+## categoria
 ENGINYER D'APLICACIONS I SISTEMES
 ANALISTA PROGRAMADOR I DE SISTEMES
 METGE CONDUCTES ADDICTIVES
@@ -139,7 +139,7 @@ PERIODISTA
 OPERADOR/A CAMBRA HIPERBÀRICA
 ENGINYER/A SUPERIOR
 
-##departamento
+## departamento
 ALICANTE
 ALCOY
 ARNAU
