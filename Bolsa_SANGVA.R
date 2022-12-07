@@ -1,7 +1,7 @@
-#Versió 1.0.2
-#Data 06/12/2022
-#Hora 18:00
-#Observacions Solo saca las 5.000 primeras personas debido a que el servidor se satura.
+#Versió 1.0.3
+#Data 07/12/2022
+#Hora 21:39
+#Esta versión corrige el problema que solo saca las primeras 5.000 personas por departamento
 
 #################
 #Creo la función#
@@ -25,8 +25,8 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
   #PREPARO LAS VARIABLES#
   #######################
   urlBuscarEdicion<-"https://www2.san.gva.es/bolsa/bolsadetrabajoiiss.jsp?language=val&nw=true"
-  url<-"http://www2.san.gva.es/bolsa/lstCandidatosListaOperativa.jsp?codedicion=#codedicion&turnoCod=#turnoCod&categoriaCod=#categoriaCod&departamentoCod=#departamentoCod&turnoDesc=#turnoDesc&categoriaDesc=#categoriaDesc&departamentoDesc=#departamentoDesc&posicionFinal=3000&posicionInicial=1&nw=true"
-  urlsituacion<-"http://www2.san.gva.es/bolsa/lstSituacionCandidatos.jsp?turnoCod=#turnoCod&categoriaCod=#categoriaCod&departamentoCod=#departamentoCod&turnoDesc=#turnoDesc&categoriaDesc=#categoriaDesc&departamentoDesc=#departamentoDesc&posicionFinal=3000&posicionInicial=1&nw=true"
+  url<-"http://www2.san.gva.es/bolsa/lstCandidatosListaOperativa.jsp?codedicion=#codedicion&turnoCod=#turnoCod&categoriaCod=#categoriaCod&departamentoCod=#departamentoCod&turnoDesc=#turnoDesc&categoriaDesc=#categoriaDesc&departamentoDesc=#departamentoDesc&posicionFinal=#posicionFinal&posicionInicial=#posicionInicial&nw=true"
+  urlsituacion<-"http://www2.san.gva.es/bolsa/lstSituacionCandidatos.jsp?turnoCod=#turnoCod&categoriaCod=#categoriaCod&departamentoCod=#departamentoCod&turnoDesc=#turnoDesc&categoriaDesc=#categoriaDesc&departamentoDesc=#departamentoDesc&posicionFinal=#posicionFinal&posicionInicial=#posicionInicial&nw=true"
   #urlsituacion<-"https://www2.san.gva.es/bolsa/lstSituacionCandidatos.jsp?turnoCod=#turnoCod&categoriaCod=#categoriaCod&departamentoCod=#departamentoCod&turnoDesc=Ordinari&categoriaDesc=AUXILIAR+ADMINISTRATIU&departamentoDesc=LA+FE&posicionInicial=1&posicionFinal=50&nw=true"
    ################
   #BUSCAR EDICION#
@@ -321,6 +321,8 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
   {
     for (j in 1:length(departamentos[,1]))
     {
+      step<-posicionFinal<-5000
+      posicionInicial<-1
   
       #Puntuacion
       urlbucle <- url
@@ -331,8 +333,31 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
       urlbucle <- gsub("#turnoCod",gsub(" ","%",turnos[1]),urlbucle)
       urlbucle <- gsub("#codedicion",gsub(" ","%",edicion),urlbucle)
       urlbucle <- gsub("#turnoDesc",gsub(" ","%",turnos[2]),urlbucle)
-      html_puntuacion <-read_html(urlbucle)
-      nodos_table_puntuacion<-html_puntuacion %>% html_nodes('table')
+      
+      #Primera iteración
+      while(TRUE)
+      {
+        urlbuclestep <-gsub("#posicionInicial",gsub(" ","%",posicionInicial),urlbucle)
+        urlbuclestep <-gsub("#posicionFinal",gsub(" ","%",posicionFinal),urlbuclestep)
+        html_puntuacion <-read_html(urlbuclestep)
+        nodos_table_puntuacion<-html_puntuacion %>% html_nodes('table')
+        if (length(nodos_table_puntuacion) == 0)
+          break
+        
+        a_aux<-html_table(nodos_table_puntuacion)
+        a_aux<-data.frame(a_aux,departamentos$departamentoDesc[j], categorias$categoriaDesc[i])
+        a_aux<-a_aux[2:(length(a_aux[,1])-1),]
+        colnames(a_aux)<-c("Puesto","Nombre","Puntos","departamentoDesc","categoriaDesc")
+        if(exists("a")){
+          a<-rbind(a,a_aux)
+        }
+        else {
+          a<-a_aux
+        }
+        
+        posicionInicial<-posicionInicial+step
+        posicionFinal<-posicionFinal+step
+      }
       
       
       #Situacion
@@ -343,30 +368,41 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
       urlbucleSituacion <- gsub("#categoriaDesc",gsub(" ","%",categorias$categoriaDesc[i]),urlbucleSituacion)
       urlbucleSituacion <- gsub("#turnoCod",gsub(" ","%",turnos[1]),urlbucleSituacion)
       urlbucleSituacion <- gsub("#turnoDesc",gsub(" ","%",turnos[2]),urlbucleSituacion)
-      html_situacion <-read_html(urlbucleSituacion)
-      nodos_table_situacion<-html_situacion %>% html_nodes('table')
       
-      if (length(nodos_table_puntuacion) > 0)
+      posicionFinal<-step
+      posicionInicial<-1
+      
+      while(TRUE)
       {
-          #Puntos
-          a<-html_table(nodos_table_puntuacion)
-          a<-data.frame(a,departamentos$departamentoDesc[j], categorias$categoriaDesc[i])
-          a<-a[2:(length(a[,1])-1),]
-          colnames(a)<-c("Puesto","Nombre","Puntos","departamentoDesc","categoriaDesc")
-          
-          #Situacion
-          b<-html_table(nodos_table_situacion)
-          b<-data.frame(b)
-          b<-b[2:length(b[,1]),]
-          colnames(b)<-c("Puesto","Nombre","Situacion","Categoria","Departamento")
-          
-          
-          #Magia
-          c<-merge(x=a,y=b, by ="Nombre", all.x = TRUE)
-          d <-c[,c(2,1,3,4,5,7,8,9)]
-          colnames(d)<-c("Puesto","Nombre","Puntos","departamentoDesc","categoriaDesc","Situacion","Categoria","Departamento")
-          Personas<-rbind(Personas,d)
+        urlbucleSituacionstep <-gsub("#posicionInicial",gsub(" ","%",posicionInicial),urlbucleSituacion)
+        urlbucleSituacionstep <-gsub("#posicionFinal",gsub(" ","%",posicionFinal),urlbucleSituacionstep)
+        html_situacion <-read_html(urlbucleSituacionstep)
+        nodos_table_situacion<-html_situacion %>% html_nodes('table')
+        if (length(nodos_table_situacion) == 0)
+        {
+          break
+        }
+        
+        b_aux<-html_table(nodos_table_situacion)
+        b_aux<-data.frame(b_aux)
+        b_aux<-b_aux[2:length(b_aux[,1]),]
+        colnames(b_aux)<-c("Puesto","Nombre","Situacion","Categoria","Departamento")
+        if(exists("b")){
+          b<-rbind(b,b_aux)
+        } else {
+          b<-b_aux
+        }
+        posicionInicial<-posicionInicial+step
+        posicionFinal<-posicionFinal+step
+        print(posicionFinal)
       }
+      
+      
+      #Magia
+      c<-merge(x=a,y=b, by ="Nombre", all.x = TRUE)
+      d <-c[,c(2,1,3,4,5,7,8,9)]
+      colnames(d)<-c("Puesto","Nombre","Puntos","departamentoDesc","categoriaDesc","Situacion","Categoria","Departamento")
+      Personas<-rbind(Personas,d)
     }
   }
   con<-file('bolsa.csv')
@@ -377,4 +413,4 @@ obtenerListadoBolsaSANGVA<-function(turno,categoria,departamento) {
 obtenerListadoBolsaSANGVA("ORDINARIO","ENGINYER D'APLICACIONS I SISTEMES","RIBERA")
 
 #Ejemplo de uso 2
-obtenerListadoBolsaSANGVA("ORDINARIO","ENGINYER D'APLICACIONS I SISTEMES","all")
+obtenerListadoBolsaSANGVA("ORDINARIO","AUXILIAR ADMINISTRATIU","LA FE")
